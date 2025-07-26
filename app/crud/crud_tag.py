@@ -34,4 +34,11 @@ class CRUDTag:
             tag_objects.append(tag)
         return tag_objects
 
-tag = CRUDTag() 
+    def remove(self, db: Session, id: int) -> Tag:
+        obj = db.query(Tag).filter(Tag.id == id).first()
+        if obj:
+            db.delete(obj)
+            db.commit()
+        return obj
+
+tag = CRUDTag()
