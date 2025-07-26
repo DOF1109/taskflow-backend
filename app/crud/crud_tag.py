@@ -5,13 +5,23 @@ from app.models.tag import Tag
 from app.schemas.tag import TagCreate
 
 class CRUDTag:
+    def get(self, db: Session, id: int) -> Union[Tag, None]:
+        return db.query(Tag).filter(Tag.id == id).first()
+
+    def get_multi(self, db: Session, skip: int = 0, limit: int = 100) -> list[Tag]:
+        return db.query(Tag).offset(skip).limit(limit).all()
     def get_by_name(self, db: Session, *, name: str) -> Union[Tag, None]:
         return db.query(Tag).filter(Tag.name == name).first()
 
     def create(self, db: Session, *, obj_in: TagCreate) -> Tag:
         db_obj = Tag(name=obj_in.name)
         db.add(db_obj)
-        db.commit()
+        try:
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            # Opcional: puedes importar IntegrityError de sqlalchemy.exc y filtrar por ese tipo
+            raise ValueError("Tag with this name already exists or DB error: " + str(e))
         db.refresh(db_obj)
         return db_obj
 
